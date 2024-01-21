@@ -1,26 +1,35 @@
 import pygame
+import buttonRect
 import sys
 import json
 
-SCREENWIDTH, SCREENHEIGHT = 1366, 768
+# variable
+pygame.font.init()
+SCREENWIDTH, SCREENHEIGHT = 640, 640
 FPS = 60
 CAPTION = "Hello World!"
+PIXEL_FONT = pygame.font.Font("font/PixelGameFont.ttf", 40)
 
+# save game
 try:
-    with open('data.json') as score_file:
+    with open('save/data.json') as score_file:
         data = json.load(score_file)
     print('save file found!')
-except:
+except FileNotFoundError:
     print('no save file found! Creating a new save file')
     data = {
         "score": 0,
         "missed": 0,
         "hiscore": 0,
     }
+mutsuki = pygame.transform.scale(pygame.image.load('artwork/mutsuki.png'), (SCREENWIDTH, SCREENHEIGHT))
+koyuki = pygame.transform.scale(pygame.image.load('artwork/koyuki.jpg'), (SCREENWIDTH, SCREENHEIGHT))
 
 
-mutsuki = pygame.transform.scale(pygame.image.load('mutsuki.png'), (1366,768))
-koyuki = pygame.transform.scale(pygame.image.load('koyuki.jpg'), (1366,768))
+def drawText(surface, text, font, text_col, x, y):
+    img = font.render(text, True, text_col)
+    surface.blit(img, (x, y))
+
 
 class Game:
     def __init__(self):
@@ -38,13 +47,12 @@ class Game:
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    with open('data.json', 'w') as score_file:
+                    with open('save/data.json', 'w') as score_file:
                         json.dump(data, score_file)
 
                     pygame.quit()
                     sys.exit()
-
-            self.states[self.gameStateManager.getState()].run()
+                self.states[self.gameStateManager.getState()].run(event)
 
             pygame.display.update()
             self.clock.tick(FPS)
@@ -55,12 +63,30 @@ class MainMenu:
         self.display = display
         self.gameStateManager = gameStateManager
 
-    def run(self):
-        self.display.fill('blue')
-        self.display.blit(koyuki, (0,0))
-        mouse_buttons = pygame.mouse.get_pressed()
-        if mouse_buttons[0]:
+    def run(self, event):
+        self.display.blit(koyuki, (0, 0))
+        startButton = buttonRect.Button("START", SCREENWIDTH / 2 - 77, 180, 154, 40, 5, 5,
+                                        [0, 0, 0], [255, 255, 255], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
+        optionButton = buttonRect.Button("OPTION", SCREENWIDTH / 2 - 75, 300, 150, 40, 5, 5,
+                                         [0, 0, 0], [255, 255, 255], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
+        quitButton = buttonRect.Button("QUIT", SCREENWIDTH / 2 - 50, 420, 100, 40, 5, 5,
+                                       [0, 0, 0], [255, 255, 255], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
+        startPressed = startButton.draw(self.display)
+        optionPressed = optionButton.draw(self.display)
+        quitPressed = quitButton.draw(self.display)
+
+        if startPressed:
             self.gameStateManager.setState("main_level")
+
+        if optionPressed:
+            print("Option")
+
+        if quitPressed:
+            with open('save/data.json', 'w') as score_file:
+                json.dump(data, score_file)
+
+            pygame.quit()
+            sys.exit()
 
 
 class MainLevel:
@@ -68,13 +94,13 @@ class MainLevel:
         self.display = display
         self.gameStateManager = gameStateManager
 
-    def run(self):
-        self.display.fill('red')
-        self.display.blit(mutsuki, (0,0))
-        mouse_buttons = pygame.mouse.get_pressed()
-        if mouse_buttons[0]:
+    def run(self, event):
+        self.display.blit(mutsuki, (0, 0))
+        backButton = buttonRect.Button("BACK", SCREENWIDTH-132, 10, 122, 40, 5, 5,
+                                        [0, 0, 0], [255, 255, 255], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
+        backPressed = backButton.draw(self.display)
+        if backPressed:
             self.gameStateManager.setState("main_menu")
-
 
 class GameStateManager:
     def __init__(self, currentState):
