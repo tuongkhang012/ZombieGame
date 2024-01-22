@@ -25,8 +25,8 @@ except FileNotFoundError:
         "missed": 0,
         "hiscore": 0,
     }
-mutsuki = pygame.image.load('artwork/mutsuki.png')
-koyuki = pygame.image.load('artwork/kok.png')
+mutsuki = pygame.image.load('artwork/kufufu.png')
+koyuki = pygame.image.load('artwork/nihaha.png')
 
 
 def drawText(surface, text, font, text_col, x, y):
@@ -98,7 +98,7 @@ class MainLevel:
         self.gameStateManager = gameStateManager
         self.enemies = pygame.sprite.Group()
         self.players = pygame.sprite.GroupSingle()
-        self.sensei = player.Player(SCREENWIDTH/2, SCREENHEIGHT/2, scale=0.2)
+        self.sensei = player.Player(SCREENWIDTH/2, SCREENHEIGHT/2)
         self.players.add(self.sensei)
 
     def run(self, event):
@@ -130,7 +130,7 @@ class MainLevel:
         #Check for mouse buttons
         if event.type == pygame.MOUSEBUTTONDOWN and not backPressed:
             pos = pygame.mouse.get_pos()
-            e = enemy.Enemy(5, koyuki, pos[0], pos[1], self.sensei, scale=0.2)
+            e = enemy.Enemy(5, koyuki, pos[0], pos[1], self.sensei)
             self.enemies.add(e)
 
     def reset(self):
