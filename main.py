@@ -2,6 +2,9 @@ import pygame
 import buttonRect
 import sys
 import json
+import random
+import enemy
+import player
 
 # variable
 pygame.font.init()
@@ -22,8 +25,8 @@ except FileNotFoundError:
         "missed": 0,
         "hiscore": 0,
     }
-mutsuki = pygame.transform.scale(pygame.image.load('artwork/mutsuki.png'), (SCREENWIDTH, SCREENHEIGHT))
-koyuki = pygame.transform.scale(pygame.image.load('artwork/koyuki.jpg'), (SCREENWIDTH, SCREENHEIGHT))
+mutsuki = pygame.image.load('artwork/kufufu.png')
+koyuki = pygame.image.load('artwork/nihaha.png')
 
 
 def drawText(surface, text, font, text_col, x, y):
@@ -69,8 +72,7 @@ class MainMenu:
         pygame.mixer.music.set_volume(0.3)
 
     def run(self, event):
-
-        self.display.blit(koyuki, (0, 0))
+        self.display.fill('grey')
         startButton = buttonRect.Button("START", SCREENWIDTH / 2 - 77, 180, 154, 40, 5, 5,
                                         [0, 0, 0], [255, 255, 255], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
         optionButton = buttonRect.Button("OPTION", SCREENWIDTH / 2 - 75, 300, 150, 40, 5, 5,
@@ -99,14 +101,46 @@ class MainLevel:
     def __init__(self, display, gameStateManager):
         self.display = display
         self.gameStateManager = gameStateManager
+        self.enemies = pygame.sprite.Group()
+        self.players = pygame.sprite.GroupSingle()
+        self.sensei = player.Player(SCREENWIDTH/2, SCREENHEIGHT/2)
+        self.players.add(self.sensei)
 
     def run(self, event):
-        self.display.blit(mutsuki, (0, 0))
+        self.display.fill('grey')
+
+        self.enemies.update(SCREENHEIGHT, SCREENWIDTH)
+        self.players.update()
+
+        self.enemies.draw(self.display)
+        self.players.draw(self.display)
+
+        if pygame.sprite.spritecollide(self.sensei, self.enemies, True):
+            self.sensei.hp -= 1
+            print(self.sensei.hp)
+
+        if self.sensei.hp == 0:
+            print("game_over")
+            self.reset()
+            self.gameStateManager.setState("main_menu")
+
+        #Check for button
         backButton = buttonRect.Button("BACK", SCREENWIDTH-132, 10, 122, 40, 5, 5,
                                         [0, 0, 0], [255, 255, 255], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
         backPressed = backButton.draw(self.display)
         if backPressed:
             self.gameStateManager.setState("main_menu")
+            self.reset()
+
+        #Check for mouse buttons
+        if event.type == pygame.MOUSEBUTTONDOWN and not backPressed:
+            pos = pygame.mouse.get_pos()
+            e = enemy.Enemy(5, koyuki, pos[0], pos[1], self.sensei)
+            self.enemies.add(e)
+
+    def reset(self):
+        self.enemies.empty()
+        self.sensei.hp = 3
 
 class GameStateManager:
     def __init__(self, currentState):
