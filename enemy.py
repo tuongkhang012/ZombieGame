@@ -12,10 +12,30 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.alive = True
+        self.bonked = False
         self.hp = hp
         self.counter = random.randint(3, 9)
         self.target = target
+        #self.bonked_group = pygame.sprite.Group()     # to spawn bonked animation
 
+    def catch_sensei(self):
+        for player in self.target:
+            if self.rect.colliderect(player.rect):
+                self.hp -= 50
+                player.hp -= 1
+
+        if self.hp <= 0:
+            self.alive = False
+
+    def check_death(self):
+        if not self.alive and not self.bonked:
+            self.speed = 0
+            # add animation bonked
+            #self.bonked = True
+
+        if self.bonked and len(self.bonked_group) == 0:
+            self.kill()
+        
     def update(self, screenheight, screenwidth):
         self.counter -= 1
 
