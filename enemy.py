@@ -1,6 +1,6 @@
 import pygame
 import random
-
+import AoE
 
 class Enemy(pygame.sprite.Sprite):
     def __init__(self, speed, image, x, y, target, hp=1, scale=1):
@@ -28,6 +28,13 @@ class Enemy(pygame.sprite.Sprite):
         if not self.rect.collidepoint(pos) and pygame.mouse.get_pressed()[0]:
             self.target.missed += 1
 
+    def check_AoE(self, aoe_collision_rect):
+            if self.rect.colliderect(aoe_collision_rect) and not self.bonked:
+                # AoE effect on the enemy
+                self.target.score += 1
+                self.hp -= 50
+                self.bonked = True
+
     def catch_sensei(self):
         if self.rect.colliderect(self.target.rect):
             self.hp -= 50
@@ -46,7 +53,7 @@ class Enemy(pygame.sprite.Sprite):
         if self.bonked: #and len(self.bonked_group) == 0:
             self.kill()
 
-    def update(self, screenheight, screenwidth):
+    def update(self, screenheight, screenwidth, aoe_group):
         self.counter -= 1
 
         if self.counter == 0:
@@ -66,3 +73,6 @@ class Enemy(pygame.sprite.Sprite):
         self.check_bonk()
         self.catch_sensei()
         self.check_death()
+        for aoe in aoe_group:
+            aoe_collision_rect = aoe.get_collision_rect()
+            self.check_AoE(aoe_collision_rect)

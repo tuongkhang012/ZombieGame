@@ -5,6 +5,7 @@ import json
 import random
 import enemy
 import player
+import AoE
 
 # variable
 pygame.font.init()
@@ -47,7 +48,7 @@ class Game:
         self.states = {"main_menu": self.menu, "main_level": self.level}
 
     def run(self):
-        while True:
+        while 1:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     with open('save/data.json', 'w') as score_file:
@@ -106,13 +107,14 @@ class MainLevel:
         self.sensei = player.Player(SCREENWIDTH/2, SCREENHEIGHT/2, self.enemies)
         self.players.add(self.sensei)
         self.counter = random.randint(10,15)
+        self.aoe_group = pygame.sprite.Group()
 
     def run(self, event):
         self.counter -= 1
         self.display.fill('grey')
         drawText(self.display, str(self.sensei.score), PIXEL_FONT, 'black', 5, 5)
 
-        self.enemies.update(SCREENHEIGHT, SCREENWIDTH)
+        self.enemies.update(SCREENHEIGHT, SCREENWIDTH,self.aoe_group)
         self.players.update()
 
         self.enemies.draw(self.display)
@@ -151,6 +153,18 @@ class MainLevel:
             self.enemies.add(e)
             self.counter = random.randint(15, 30)
 
+
+        #make AoE
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            x, y = event.pos
+            aoe = AoE.AoE(x, y)
+            self.aoe_group.add(aoe)
+
+            # Update and draw AoEs
+        self.aoe_group.update()
+        self.aoe_group.draw(self.display)
+
+
     def reset(self):
         data["score"] = self.sensei.score
         if self.sensei.score > data["hiscore"]:
@@ -159,6 +173,7 @@ class MainLevel:
         self.sensei.hp = 3
         self.sensei.score = 0
         self.sensei.missed = 0
+
 
 class GameStateManager:
     def __init__(self, currentState, bgm):
