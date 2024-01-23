@@ -2,11 +2,15 @@ import pygame
 import buttonRect
 import sys
 import json
+import random
+import enemy
+import player
+import AoE
 
 # variable
 pygame.font.init()
 SCREENWIDTH, SCREENHEIGHT = 640, 640
-FPS = 60
+FPS = 30
 CAPTION = "Hello World!"
 PIXEL_FONT = pygame.font.Font("font/PixelGameFont.ttf", 40)
 
@@ -22,8 +26,8 @@ except FileNotFoundError:
         "missed": 0,
         "hiscore": 0,
     }
-mutsuki = pygame.transform.scale(pygame.image.load('artwork/mutsuki.png'), (SCREENWIDTH, SCREENHEIGHT))
-koyuki = pygame.transform.scale(pygame.image.load('artwork/koyuki.jpg'), (SCREENWIDTH, SCREENHEIGHT))
+mutsuki = pygame.image.load('artwork/kufufu.png')
+koyuki = pygame.image.load('artwork/nihaha.png')
 
 
 def drawText(surface, text, font, text_col, x, y):
@@ -37,14 +41,14 @@ class Game:
         self.screen = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
         self.clock = pygame.time.Clock()
         pygame.display.set_caption(CAPTION)
-        self.gameStateManager = GameStateManager("main_menu")
+        self.gameStateManager = GameStateManager("main_menu", "sound/endlessCarnival.mp3")
         self.menu = MainMenu(self.screen, self.gameStateManager)
         self.level = MainLevel(self.screen, self.gameStateManager)
 
         self.states = {"main_menu": self.menu, "main_level": self.level}
 
     def run(self):
-        while True:
+        while 1:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     with open('save/data.json', 'w') as score_file:
@@ -63,14 +67,13 @@ class MainMenu:
         self.display = display
         self.gameStateManager = gameStateManager
 
-        # bgm
-        pygame.mixer.music.load('sound/th06_05.wav')
-        pygame.mixer.music.play(-1)  # -1 = unlimited loop
-        pygame.mixer.music.set_volume(0.3)
+        # # bgm
+        # pygame.mixer.music.load('sound/th06_05.wav')
+        # pygame.mixer.music.play(-1)  # -1 = unlimited loop
+        # pygame.mixer.music.set_volume(0.05)
 
     def run(self, event):
-
-        self.display.blit(koyuki, (0, 0))
+        self.display.fill('grey')
         startButton = buttonRect.Button("START", SCREENWIDTH / 2 - 77, 180, 154, 40, 5, 5,
                                         [0, 0, 0], [255, 255, 255], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
         optionButton = buttonRect.Button("OPTION", SCREENWIDTH / 2 - 75, 300, 150, 40, 5, 5,
@@ -82,7 +85,7 @@ class MainMenu:
         quitPressed = quitButton.draw(self.display)
 
         if startPressed:
-            self.gameStateManager.setState("main_level")
+            self.gameStateManager.setState("main_level", "sound/th06_05.wav")
 
         if optionPressed:
             print("Option")
@@ -99,24 +102,97 @@ class MainLevel:
     def __init__(self, display, gameStateManager):
         self.display = display
         self.gameStateManager = gameStateManager
+        self.enemies = pygame.sprite.Group()
+        self.players = pygame.sprite.GroupSingle()
+        self.sensei = player.Player(SCREENWIDTH/2, SCREENHEIGHT/2, self.enemies)
+        self.players.add(self.sensei)
+        self.counter = random.randint(10,15)
+        self.aoe_group = pygame.sprite.Group()
 
     def run(self, event):
-        self.display.blit(mutsuki, (0, 0))
+        self.counter -= 1
+        self.display.fill('grey')
+        drawText(self.display, str(self.sensei.score), PIXEL_FONT, 'black', 5, 5)
+
+        self.enemies.update(SCREENHEIGHT, SCREENWIDTH,self.aoe_group)
+        self.players.update()
+
+        self.enemies.draw(self.display)
+        self.players.draw(self.display)
+
+        if self.sensei.hp == 0:
+            print("game_over")
+            self.reset()
+            self.gameStateManager.setState("main_menu", "sound/endlessCarnival.mp3")
+
+        #Check for button
         backButton = buttonRect.Button("BACK", SCREENWIDTH-132, 10, 122, 40, 5, 5,
                                         [0, 0, 0], [255, 255, 255], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
         backPressed = backButton.draw(self.display)
         if backPressed:
-            self.gameStateManager.setState("main_menu")
+            self.gameStateManager.setState("main_menu", "sound/endlessCarnival.mp3")
+            self.reset()
+
+        #Check for mouse buttons
+        if self.counter == 0:
+            spawnpoint = random.choice([0, 1, 2, 3])
+
+            if spawnpoint == 0:
+                e = enemy.Enemy(5, koyuki, random.randint(0, SCREENWIDTH),
+                                SCREENHEIGHT, self.sensei)
+            elif spawnpoint == 1:
+                e = enemy.Enemy(5, koyuki, random.randint(0, SCREENWIDTH),
+                                0, self.sensei)
+            elif spawnpoint == 2:
+                e = enemy.Enemy(5, koyuki, 0,
+                                random.randint(0, SCREENHEIGHT), self.sensei)
+            else:
+                e = enemy.Enemy(5, koyuki, SCREENWIDTH,
+                                random.randint(0, SCREENHEIGHT), self.sensei)
+
+            self.enemies.add(e)
+            self.counter = random.randint(15, 30)
+
+
+        #make AoE
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            x, y = event.pos
+            aoe = AoE.AoE(x, y)
+            self.aoe_group.add(aoe)
+
+            # Update and draw AoEs
+        self.aoe_group.update()
+        self.aoe_group.draw(self.display)
+
+
+    def reset(self):
+        data["score"] = self.sensei.score
+        if self.sensei.score > data["hiscore"]:
+            data["hiscore"] = self.sensei.score
+        self.enemies.empty()
+        self.sensei.hp = 3
+        self.sensei.score = 0
+        self.sensei.missed = 0
+
 
 class GameStateManager:
-    def __init__(self, currentState):
+    def __init__(self, currentState, bgm):
         self.currentState = currentState
+        # bgm
+        self.bgm = bgm
+        pygame.mixer.music.load(self.bgm)
+        pygame.mixer.music.play(-1)  # -1 = unlimited loop
+        pygame.mixer.music.set_volume(0.05)
 
     def getState(self):
         return self.currentState
 
-    def setState(self, state):
+    def setState(self, state, bgm):
         self.currentState = state
+        self.bgm = bgm
+        pygame.mixer.music.load(self.bgm)
+        pygame.mixer.music.play(-1)  # -1 = unlimited loop
+        pygame.mixer.music.set_volume(0.05)
 
 
 if __name__ == '__main__':
