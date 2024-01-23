@@ -14,15 +14,25 @@ class Enemy(pygame.sprite.Sprite):
         self.alive = True
         self.bonked = False
         self.hp = hp
-        self.counter = random.randint(3, 9)
+        self.counter = random.randint(15, 30)
         self.target = target
-        #self.bonked_group = pygame.sprite.Group()     # to spawn bonked animation
+        # self.bonked_group = pygame.sprite.Group()     # to spawn bonked animation
+
+    def check_bonk(self):
+        pos = pygame.mouse.get_pos()
+        if self.rect.collidepoint(pos) and pygame.mouse.get_pressed()[0] and not self.bonked:
+            self.target.score += 1
+            self.hp -= 50
+            self.bonked = True
+
+        if not self.rect.collidepoint(pos) and pygame.mouse.get_pressed()[0]:
+            self.target.missed += 1
 
     def catch_sensei(self):
-        for player in self.target:
-            if self.rect.colliderect(player.rect):
-                self.hp -= 50
-                player.hp -= 1
+        if self.rect.colliderect(self.target.rect):
+            self.hp -= 50
+            if not self.target.invincible:
+                self.target.hp -= 1
 
         if self.hp <= 0:
             self.alive = False
@@ -31,26 +41,19 @@ class Enemy(pygame.sprite.Sprite):
         if not self.alive and not self.bonked:
             self.speed = 0
             # add animation bonked
-            #self.bonked = True
+            self.bonked = True
 
-        if self.bonked and len(self.bonked_group) == 0:
+        if self.bonked: #and len(self.bonked_group) == 0:
             self.kill()
-        
+
     def update(self, screenheight, screenwidth):
         self.counter -= 1
 
         if self.counter == 0:
-            choice = random.randint(1, 3)
+            self.rect.x += random.choice([1, 0, -1]) * 25
+            self.rect.y += random.choice([1, 0, -1]) * 25
 
-            if choice == 1:
-                self.rect.x += random.choice([1, -1]) * 15
-            elif choice == 2:
-                self.rect.y += random.choice([1, -1]) * 15
-            else:
-                self.rect.x += random.choice([1, -1]) * 15
-                self.rect.y += random.choice([1, -1]) * 15
-
-            self.counter = random.randint(3, 9)
+            self.counter = random.randint(15, 30)
         else:
             distance_x = self.target.rect.x - self.rect.x
             distance_y = self.target.rect.y - self.rect.y
@@ -60,9 +63,6 @@ class Enemy(pygame.sprite.Sprite):
                 self.rect.x += self.speed * distance_x / distance
                 self.rect.y += self.speed * distance_y / distance
 
-        #check if out-of-bound
-        if self.rect.top > screenheight or self.rect.bottom < 0:
-            self.kill()
-
-        if self.rect.left > screenwidth or self.rect.right < 0:
-            self.kill()
+        self.check_bonk()
+        self.catch_sensei()
+        self.check_death()
