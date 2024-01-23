@@ -3,10 +3,9 @@ import pygame
 class AoE(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = pygame.Surface((80, 80))
-        self.image.fill((0, 255, 0))  # Green color for the AoE
+        self.image = pygame.Surface((22, 22))
         self.rect = self.image.get_rect(center=(x, y))
-        self.duration = 0.3
+        self.duration = 1
         self.counter = 1
 
     def update(self):
