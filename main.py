@@ -63,7 +63,13 @@ class MainMenu:
         self.display = display
         self.gameStateManager = gameStateManager
 
+        # bgm
+        pygame.mixer.music.load('sound/th06_05.wav')
+        pygame.mixer.music.play(-1)  # -1 = unlimited loop
+        pygame.mixer.music.set_volume(0.3)
+
     def run(self, event):
+
         self.display.blit(koyuki, (0, 0))
         startButton = buttonRect.Button("START", SCREENWIDTH / 2 - 77, 180, 154, 40, 5, 5,
                                         [0, 0, 0], [255, 255, 255], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
