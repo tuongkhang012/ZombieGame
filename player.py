@@ -13,7 +13,10 @@ class Player(pygame.sprite.Sprite):
         self.rect.center = (x, y)
         self.hp = hp
         self.alive = True
+        self.invincible = False
         self.explosion = False
+        self.score = 0
+        self.missed = 0
         
         self.enemies = enemies
         self.explosion_group = pygame.sprite.Group()
