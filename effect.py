@@ -13,14 +13,14 @@ class Explosion(pygame.sprite.Sprite):
         self.index = 0
         self.pre_image = self.image_list[self.index]
         self.image = pygame.transform.scale(self.pre_image, (100, 100))
-        self.rect = self.image.get_rect(center=(x+50, y+50))
+        self.rect = self.image.get_rect(center=(x, y))
 
     def animation(self):
         self.index += 0.2
 
         if self.index < len(self.image_list):
             self.pre_image = self.image_list[int(self.index)]
-            self.image = pygame.transform.scale(self.pre_image, (50, 50))
+            self.image = pygame.transform.scale(self.pre_image, (100, 100))
         else:
             self.kill()
 
