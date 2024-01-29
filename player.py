@@ -22,18 +22,20 @@ class Player(pygame.sprite.Sprite):
         self.explosion_group = pygame.sprite.Group()
 
         self.explosion_sound = pygame.mixer.Sound('sound/explosion.mp3')
-        self.explosion_sound.set_volume(1)
+        self.explosion_sound.set_volume(0.05)
         
     def check_death(self):
         if self.hp <= 0 and self.alive:
             self.alive = False
         if not self.alive and not self.explosion:
             explosion = Explosion(self.explosion_group, self.rect.centerx, self.rect.centery)
+            self.invincible = True
+            self.kill()
             self.explosion = True
             self.explosion_sound.play()
 
         if self.explosion and len(self.explosion_group) == 0:
-            self.kill()
+            return True
 
     def update(self):
         self.check_death()
