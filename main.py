@@ -7,6 +7,7 @@ from enemies import koyuki as koyukiType
 from enemies import mutsuki as mutsukiType
 from enemies import yuuka as yuukaType
 import player
+from effect import Explosion
 import AoE
 
 # variable
@@ -59,7 +60,7 @@ class Game:
         while 1:
             self.states[self.gameStateManager.getState()].run()
 
-            pygame.display.update()
+            pygame.display.flip()
             self.clock.tick(FPS)
 
 
@@ -107,13 +108,20 @@ class MainMenu:
 class MainLevel:
     def __init__(self, display, gameStateManager):
         self.display = display
+        self.bat0 = pygame.image.load("artwork/bat/0.png").convert_alpha()
+        self.bat0 = pygame.transform.scale(self.bat0, (int(self.bat0.get_width() * 2), int(self.bat0.get_height() * 2)))
+        self.bat1 = pygame.image.load("artwork/bat/1.png").convert_alpha()
+        self.bat1 = pygame.transform.scale(self.bat1, (int(self.bat1.get_width() * 2), int(self.bat1.get_height() * 2)))
         self.gameStateManager = gameStateManager
         self.enemies = pygame.sprite.Group()
         self.players = pygame.sprite.GroupSingle()
+        self.aoe_group = pygame.sprite.Group()
+
         self.sensei = player.Player(SCREENWIDTH/2, SCREENHEIGHT/2, self.enemies)
         self.players.add(self.sensei)
         self.counter = random.randint(10,15)
-        self.aoe_group = pygame.sprite.Group()
+
+        self.explosions = pygame.sprite.Group()
         self.koyukiSpeed = koyukiBaseSpeed
         self.mutsukiSpeed = mutsukiBaseSpeed
         self.yuukaSpeed = yuukaBaseSpeed
@@ -122,16 +130,11 @@ class MainLevel:
         global previous_score
         global missed_score
         keys = pygame.key.get_pressed()
-        mutsuki = pygame.image.load('artwork/kufufu.png')
-        koyuki = pygame.image.load('artwork/nihaha.png')
         self.counter -= 1
         self.display.fill('grey')
+        pygame.mouse.set_visible(False)
+        mouse_pos = pygame.mouse.get_pos()
 
-        self.enemies.update(SCREENHEIGHT, SCREENWIDTH,self.aoe_group)
-        self.players.update()
-
-        self.enemies.draw(self.display)
-        self.players.draw(self.display)
         drawText(self.display, str(self.sensei.score), PIXEL_FONT, 'black', 5, 5)
         drawText(self.display, "HI: " + str(data["hiscore"]), PIXEL_FONT_SMALL, 'black', 5, 40)
         drawText(self.display, str(self.sensei.hp), PIXEL_FONT, 'black', 5, SCREENHEIGHT-35)
@@ -140,11 +143,19 @@ class MainLevel:
         self.mutsukiSpeed += speedupRate / FPS
         self.yuukaSpeed += speedupRate / FPS
 
-        if self.sensei.hp <= 0:
+        self.sensei.explosion_group.update()
+        self.players.update()
+        self.enemies.update(SCREENHEIGHT, SCREENWIDTH, self.aoe_group)
+
+        self.sensei.explosion_group.draw(self.display)
+        self.enemies.draw(self.display)
+        self.players.draw(self.display)
+
+        if self.sensei.check_death():
             previous_score = self.sensei.score
             missed_score = self.sensei.missed
-            self.reset()
             self.gameStateManager.setState("game_over", "sound/fadeout.mp3", 0.04)
+            self.reset()
 
         #Check for button
         backButton = buttonRect.Button("BACK", SCREENWIDTH-132, 10, 122, 40, 5, 5,
@@ -186,6 +197,7 @@ class MainLevel:
         if keys[pygame.K_SPACE]:
             self.gameStateManager.setState("pause", "sound/th06_05.wav", 0.02, c=True)
 
+        clicked = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 with open('save/data.json', 'w') as score_file:
@@ -199,14 +211,23 @@ class MainLevel:
                 aoe = AoE.AoE(x, y)
                 self.aoe_group.add(aoe)
                 self.sensei.missed += 1
+                self.display.blit(self.bat1, mouse_pos)
+                clicked = True
+
 
         # Update and draw AoEs
         self.aoe_group.update()
+
+        if not clicked:
+            self.display.blit(self.bat0, mouse_pos)
 
     def reset(self):
         if self.sensei.score > data["hiscore"]:
             data["hiscore"] = self.sensei.score
         self.enemies.empty()
+        pygame.mouse.set_visible(True)
+        self.sensei = player.Player(SCREENWIDTH / 2, SCREENHEIGHT / 2, self.enemies)
+        self.players.add(self.sensei)
         self.sensei.hp = 3
         self.sensei.score = 0
         self.sensei.missed = 0

@@ -1,13 +1,14 @@
 import pygame
 
 class Explosion(pygame.sprite.Sprite):
-    def __init__(self, groups, x, y):
-        super().__init__(groups)
+    def __init__(self, group, x, y):
+        super().__init__(group)
 
         # explosion img
+        self.group = group
         self.image_list = []
         for i in range(5):
-            image = pygame.image.load(f'artwork/explosion/{i}.png')
+            image = pygame.image.load(f"artwork/explosion/{i}.png")
             self.image_list.append(image)
 
         self.index = 0
