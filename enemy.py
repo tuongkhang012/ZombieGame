@@ -14,6 +14,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.center = (x, y)
         self.alive = True
         self.bonked = False
+        self.max_hp = hp
         self.hp = hp
         self.counter = random.randint(15, 30)
         self.target = target
@@ -26,6 +27,9 @@ class Enemy(pygame.sprite.Sprite):
         if distance != 0:
             self.rect.x += self.speed * distance_x / distance
             self.rect.y += self.speed * distance_y / distance
+
+    def health_bar(self, screen):
+        pass
 
     def check_AoE(self, aoe_collision_rect):
         if self.rect.colliderect(aoe_collision_rect) and not self.bonked:
@@ -42,6 +46,8 @@ class Enemy(pygame.sprite.Sprite):
         if self.hp <= 0:
             self.bonked = True
             self.target.score += 1
+            if self.target.ult != self.target.maxUlt:
+                self.target.ult += 1
             self.alive = False
 
     def check_death(self):
@@ -53,7 +59,8 @@ class Enemy(pygame.sprite.Sprite):
         if self.bonked:  # and len(self.bonked_group) == 0:
             self.kill()
 
-    def update(self, screenheight, screenwidth, aoe_group):
+    def update(self, screenheight, screenwidth, aoe_group, display):
+        self.health_bar(display)
         self.movement()
 
         self.catch_sensei()
