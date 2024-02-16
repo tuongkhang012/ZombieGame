@@ -25,3 +25,10 @@ class Koyuki(enemy.Enemy):
             if distance != 0:
                 self.rect.x += self.speed * distance_x / distance
                 self.rect.y += self.speed * distance_y / distance
+
+    def health_bar(self, screen):
+        ratio = self.hp / self.max_hp
+
+        pygame.draw.rect(screen, "black", (self.rect.x + 3, self.rect.y - 13, 32, 6))
+        pygame.draw.rect(screen, "red", (self.rect.x + 4, self.rect.y - 12, 30, 4))
+        pygame.draw.rect(screen, "green", (self.rect.x + 4, self.rect.y - 12, 30 * ratio, 4))

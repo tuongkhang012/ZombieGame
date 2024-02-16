@@ -4,6 +4,7 @@ class AoE(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
         self.image = pygame.Surface((22, 22))
+        self.image.fill("green")
         self.rect = self.image.get_rect(center=(x, y))
         self.duration = 1
         self.counter = 1

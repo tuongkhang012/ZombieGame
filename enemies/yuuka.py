@@ -6,8 +6,8 @@ import random
 class Yuuka(enemy.Enemy):
     def __init__(self, speed, x, y, target):
         image = pygame.image.load('artwork/yuukafumo.png').convert_alpha()
-        self.hp = 5
-        super().__init__(speed, image, x, y, target, hp=5, scale=1)
+        self.hp = 3
+        super().__init__(speed, image, x, y, target, hp=3, scale=1)
 
     def movement(self):
         distance_x = self.target.rect.x - self.rect.x
@@ -17,3 +17,10 @@ class Yuuka(enemy.Enemy):
         if distance != 0:
             self.rect.x += self.speed * distance_x / distance
             self.rect.y += self.speed * distance_y / distance
+
+    def health_bar(self, screen):
+        ratio = self.hp / self.max_hp
+
+        pygame.draw.rect(screen, "black", (self.rect.x + 6, self.rect.y - 13, 52, 6))
+        pygame.draw.rect(screen, "red", (self.rect.x + 7, self.rect.y - 12, 50, 4))
+        pygame.draw.rect(screen, "green", (self.rect.x + 7, self.rect.y - 12, 50 * ratio, 4))

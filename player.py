@@ -17,6 +17,8 @@ class Player(pygame.sprite.Sprite):
         self.explosion = False
         self.score = 0
         self.missed = 0
+        self.ult = 0
+        self.maxUlt = 10
         
         self.enemies = enemies
         self.explosion_group = pygame.sprite.Group()
