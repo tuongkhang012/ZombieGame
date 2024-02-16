@@ -6,6 +6,7 @@ import random
 from enemies import koyuki as koyukiType
 from enemies import mutsuki as mutsukiType
 from enemies import yuuka as yuukaType
+import heart
 import player
 from effect import Explosion
 import AoE
@@ -108,18 +109,21 @@ class MainMenu:
 class MainLevel:
     def __init__(self, display, gameStateManager):
         self.display = display
+
         self.bat0 = pygame.image.load("artwork/bat/0.png").convert_alpha()
         self.bat0 = pygame.transform.scale(self.bat0, (int(self.bat0.get_width() * 2), int(self.bat0.get_height() * 2)))
         self.bat1 = pygame.image.load("artwork/bat/1.png").convert_alpha()
         self.bat1 = pygame.transform.scale(self.bat1, (int(self.bat1.get_width() * 2), int(self.bat1.get_height() * 2)))
+
         self.gameStateManager = gameStateManager
         self.enemies = pygame.sprite.Group()
+        self.hearts = pygame.sprite.Group()
         self.players = pygame.sprite.GroupSingle()
         self.aoe_group = pygame.sprite.Group()
 
-        self.sensei = player.Player(SCREENWIDTH/2, SCREENHEIGHT/2, self.enemies)
+        self.sensei = player.Player(SCREENWIDTH / 2, SCREENHEIGHT / 2, self.enemies)
         self.players.add(self.sensei)
-        self.counter = random.randint(10,15)
+        self.counter = random.randint(10, 15)
 
         self.explosions = pygame.sprite.Group()
         self.koyukiSpeed = koyukiBaseSpeed
@@ -137,19 +141,39 @@ class MainLevel:
 
         drawText(self.display, str(self.sensei.score), PIXEL_FONT, 'black', 5, 5)
         drawText(self.display, "HI: " + str(data["hiscore"]), PIXEL_FONT_SMALL, 'black', 5, 40)
-        drawText(self.display, str(self.sensei.hp), PIXEL_FONT, 'black', 5, SCREENHEIGHT-35)
 
-        self.koyukiSpeed += speedupRate/FPS
+        if self.sensei.hp == 3:
+            heart1 = heart.Heart(1, 20, SCREENHEIGHT - 20)
+            heart2 = heart.Heart(1, 55, SCREENHEIGHT - 20)
+            heart3 = heart.Heart(1, 90, SCREENHEIGHT - 20)
+        elif self.sensei.hp == 2:
+            heart1 = heart.Heart(1, 20, SCREENHEIGHT - 20)
+            heart2 = heart.Heart(1, 55, SCREENHEIGHT - 20)
+            heart3 = heart.Heart(0, 90, SCREENHEIGHT - 20)
+        elif self.sensei.hp == 1:
+            heart1 = heart.Heart(1, 20, SCREENHEIGHT - 20)
+            heart2 = heart.Heart(0, 55, SCREENHEIGHT - 20)
+            heart3 = heart.Heart(0, 90, SCREENHEIGHT - 20)
+        else:
+            heart1 = heart.Heart(0, 20, SCREENHEIGHT - 20)
+            heart2 = heart.Heart(0, 55, SCREENHEIGHT - 20)
+            heart3 = heart.Heart(0, 90, SCREENHEIGHT - 20)
+
+        self.hearts.add(heart1, heart2, heart3)
+
+        self.koyukiSpeed += speedupRate / FPS
         self.mutsukiSpeed += speedupRate / FPS
         self.yuukaSpeed += speedupRate / FPS
 
         self.sensei.explosion_group.update()
-        self.players.update()
         self.enemies.update(SCREENHEIGHT, SCREENWIDTH, self.aoe_group)
+        self.players.update()
+        self.hearts.update()
 
         self.sensei.explosion_group.draw(self.display)
         self.enemies.draw(self.display)
         self.players.draw(self.display)
+        self.hearts.draw(self.display)
 
         if self.sensei.check_death():
             previous_score = self.sensei.score
@@ -157,33 +181,34 @@ class MainLevel:
             self.gameStateManager.setState("game_over", "sound/fadeout.mp3", 0.04)
             self.reset()
 
-        #Check for button
-        backButton = buttonRect.Button("BACK", SCREENWIDTH-132, 10, 122, 40, 5, 5,
-                                        [0, 0, 0], [255, 255, 255], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
+        # Check for button
+        backButton = buttonRect.Button("BACK", SCREENWIDTH - 132, 10, 122, 40, 5, 5,
+                                       [0, 0, 0], [255, 255, 255], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
         backPressed = backButton.draw(self.display)
         if backPressed:
             self.gameStateManager.setState("main_menu", "sound/endlessCarnival.mp3")
             self.reset()
 
-        #Spawning mechanics
+        # Spawning mechanics
         if self.counter == 0:
             spawnpoint = random.choice([0, 1, 2, 3])
             spawntype = random.choice([0, 1, 2])
 
             if spawnpoint == 0:
-                pos = (random.randint(0, SCREENWIDTH),SCREENHEIGHT)
+                pos = (random.randint(0, SCREENWIDTH), SCREENHEIGHT)
             elif spawnpoint == 1:
                 pos = (random.randint(0, SCREENWIDTH), 0)
                 e = koyukiType.Koyuki(self.koyukiSpeed, random.randint(0, SCREENWIDTH),
-                                0, self.sensei)
+                                      0, self.sensei)
             elif spawnpoint == 2:
                 pos = (0, random.randint(0, SCREENHEIGHT))
                 e = koyukiType.Koyuki(self.koyukiSpeed, 0,
-                                random.randint(0, SCREENHEIGHT), self.sensei)
+                                      random.randint(0, SCREENHEIGHT), self.sensei)
             else:
                 pos = (SCREENWIDTH, random.randint(0, SCREENHEIGHT))
                 e = koyukiType.Koyuki(self.koyukiSpeed, SCREENWIDTH,
-                                random.randint(0, SCREENHEIGHT), self.sensei)
+                                      random.randint(0, SCREENHEIGHT), self.sensei)
+
             if spawntype == 0:
                 e = koyukiType.Koyuki(self.koyukiSpeed, pos[0], pos[1], self.sensei)
             elif spawntype == 1:
@@ -214,7 +239,6 @@ class MainLevel:
                 self.display.blit(self.bat1, mouse_pos)
                 clicked = True
 
-
         # Update and draw AoEs
         self.aoe_group.update()
 
@@ -225,6 +249,7 @@ class MainLevel:
         if self.sensei.score > data["hiscore"]:
             data["hiscore"] = self.sensei.score
         self.enemies.empty()
+        self.hearts.empty()
         pygame.mouse.set_visible(True)
         self.sensei = player.Player(SCREENWIDTH / 2, SCREENHEIGHT / 2, self.enemies)
         self.players.add(self.sensei)
@@ -243,7 +268,7 @@ class GameOver:
 
     def run(self):
         self.display.fill([74, 74, 74])
-        drawText(self.display, "GAME OVER", PIXEL_FONT_BIG, [255, 55, 55], SCREENWIDTH/2 - 230, 100)
+        drawText(self.display, "GAME OVER", PIXEL_FONT_BIG, [255, 55, 55], SCREENWIDTH / 2 - 230, 100)
         drawText(self.display, "SCORE: " + str(previous_score),
                  PIXEL_FONT_SMALL, [255, 55, 55], SCREENWIDTH / 2 - 30, 200)
         drawText(self.display, "MISSED: " + str(missed_score),
@@ -251,12 +276,12 @@ class GameOver:
         if missed_score == 0:
             drawText(self.display, "ACCURACY: 100%", PIXEL_FONT_SMALL, [255, 55, 55], SCREENWIDTH / 2 - 64, 240)
         else:
-            drawText(self.display, "ACCURACY: {:.2f}%".format(previous_score/(previous_score+missed_score) * 100),
+            drawText(self.display, "ACCURACY: {:.2f}%".format(previous_score / (previous_score + missed_score) * 100),
                      PIXEL_FONT_SMALL, [255, 55, 55], SCREENWIDTH / 2 - 64, 240)
         restartButton = buttonRect.Button("RESTART", SCREENWIDTH / 2 - 104, 350, 208, 40, 5, 5,
-                                        [255, 255, 255], [0, 0, 0], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
+                                          [255, 255, 255], [0, 0, 0], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
         titleButton = buttonRect.Button("TITLE", SCREENWIDTH / 2 - 64, 470, 128, 40, 5, 5,
-                                       [255, 255, 255], [0, 0, 0], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
+                                        [255, 255, 255], [0, 0, 0], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
         restartPressed = restartButton.draw(self.display)
         titlePressed = titleButton.draw(self.display)
 
@@ -282,7 +307,7 @@ class Pause:
 
     def run(self):
         self.display.fill([74, 74, 74])
-        drawText(self.display, "PAUSED", PIXEL_FONT_BIG, [255, 255, 255], SCREENWIDTH/2 - 160, 100)
+        drawText(self.display, "PAUSED", PIXEL_FONT_BIG, [255, 255, 255], SCREENWIDTH / 2 - 160, 100)
         continueButton = buttonRect.Button("CONTINUE", SCREENWIDTH / 2 - 102, 350, 204, 40, 5, 5,
                                            [255, 255, 255], [0, 0, 0], PIXEL_FONT, [0, 236, 252], [0, 126, 252])
         continuePressed = continueButton.draw(self.display)
@@ -320,7 +345,6 @@ class GameStateManager:
             pygame.mixer.music.set_volume(volume)
         else:
             pygame.mixer.music.set_volume(volume)
-
 
 
 if __name__ == '__main__':
