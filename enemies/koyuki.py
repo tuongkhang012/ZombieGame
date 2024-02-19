@@ -5,7 +5,7 @@ import random
 
 class Koyuki(enemy.Enemy):
     def __init__(self, speed, x, y, target):
-        image = pygame.image.load('artwork/nihaha.png').convert_alpha()
+        image = pygame.image.load('artwork/nihaha0.png').convert_alpha()
         self.hp = 1
         super().__init__(speed, image, x, y, target, hp=1, scale=1)
 

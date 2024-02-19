@@ -14,7 +14,9 @@ import AoE
 pygame.font.init()
 SCREENWIDTH, SCREENHEIGHT = 640, 640
 FPS = 30
-CAPTION = "Hello World!"
+CAPTION = "Leave Sensei alone!"
+icon = pygame.image.load("artwork/sob.png")
+pygame.display.set_icon(icon)
 PIXEL_FONT_BIG = pygame.font.Font("font/PixelGameFont.ttf", 80)
 PIXEL_FONT = pygame.font.Font("font/PixelGameFont.ttf", 40)
 PIXEL_FONT_SMALL = pygame.font.Font("font/PixelGameFont.ttf", 15)
@@ -72,8 +74,10 @@ class MainMenu:
         self.gameStateManager = gameStateManager
 
     def run(self):
-        self.display.fill('grey')
-        drawText(self.display, "LEAVE SENSEI ALONE", PIXEL_FONT, 'black', SCREENWIDTH / 2 - 220, 100)
+        self.title_scrn = pygame.image.load('artwork/titlescreen.png').convert_alpha()
+        self.display.blit(self.title_scrn, (0, 0))
+
+        #drawText(self.display, "LEAVE SENSEI ALONE", PIXEL_FONT, 'white', SCREENWIDTH / 2 - 220, 100)
 
         startButton = buttonRect.Button("START", SCREENWIDTH / 2 - 77, 260, 154, 40, 5, 5,
                                         [0, 0, 0], [255, 255, 255], PIXEL_FONT, [0, 236, 252], [0, 126, 252])

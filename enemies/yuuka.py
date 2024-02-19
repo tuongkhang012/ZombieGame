@@ -5,7 +5,7 @@ import random
 
 class Yuuka(enemy.Enemy):
     def __init__(self, speed, x, y, target):
-        image = pygame.image.load('artwork/yuukafumo.png').convert_alpha()
+        image = pygame.image.load('artwork/yuuka0.png').convert_alpha()
         self.hp = 3
         super().__init__(speed, image, x, y, target, hp=3, scale=1)
 
