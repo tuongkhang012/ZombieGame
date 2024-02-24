@@ -4,12 +4,15 @@ import AoE
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, speed, image, x, y, target, hp=1, scale=1):
+    def __init__(self, speed, image, death_img, death_sound, x, y, target, hp=1, scale=1):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
         width = image.get_width()
         height = image.get_height()
         self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
+        self.death_img = pygame.transform.scale(death_img, (int(width * scale), int(height * scale)))
+        self.death_sound = death_sound
+        self.death_sound.set_volume(0.05)
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
         self.alive = True
@@ -17,6 +20,9 @@ class Enemy(pygame.sprite.Sprite):
         self.max_hp = hp
         self.hp = hp
         self.counter = random.randint(15, 30)
+
+        self.death_cntr = 30
+
         self.target = target
         # self.bonked_group = pygame.sprite.Group()     # to spawn bonked animation
     def movement(self):
@@ -44,7 +50,7 @@ class Enemy(pygame.sprite.Sprite):
                 self.target.hp -= 1
 
         if self.hp <= 0:
-            self.bonked = True
+            #self.bonked = True
             self.target.score += 1
             if self.target.ult != self.target.maxUlt:
                 self.target.ult += 1
@@ -53,11 +59,17 @@ class Enemy(pygame.sprite.Sprite):
     def check_death(self):
         if not self.alive and not self.bonked:
             self.speed = 0
-            # add animation bonked
-            self.bonked = True
+            # bonked
+            while not self.bonked:
+                self.image = self.death_img
+                self.death_cntr -= 1
+                if self.death_cntr <= 0:
+                    self.bonked = True
+                    self.death_sound.play()
+                    self.kill()
 
-        if self.bonked:  # and len(self.bonked_group) == 0:
-            self.kill()
+        #if self.bonked:
+         #   self.kill()
 
     def update(self, screenheight, screenwidth, aoe_group, display):
         self.health_bar(display)

@@ -24,7 +24,7 @@ class Player(pygame.sprite.Sprite):
         self.explosion_group = pygame.sprite.Group()
 
         self.explosion_sound = pygame.mixer.Sound('sound/explosion.mp3')
-        self.explosion_sound.set_volume(0.05)
+        self.explosion_sound.set_volume(0.1)
         
     def check_death(self):
         if self.hp <= 0 and self.alive:
