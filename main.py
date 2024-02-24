@@ -6,6 +6,7 @@ import random
 from enemies import koyuki as koyukiType
 from enemies import mutsuki as mutsukiType
 from enemies import yuuka as yuukaType
+from effect import Ex
 import heart
 import player
 import AoE
@@ -158,6 +159,8 @@ class MainLevel:
     def __init__(self, display, gameStateManager):
         self.display = display
 
+        self.background = pygame.image.load("artwork/background.png").convert_alpha()
+
         self.bat0 = pygame.image.load("artwork/bat/0.png").convert_alpha()
         self.bat0 = pygame.transform.scale(self.bat0, (int(self.bat0.get_width() * 2), int(self.bat0.get_height() * 2)))
         self.bat1 = pygame.image.load("artwork/bat/1.png").convert_alpha()
@@ -177,14 +180,14 @@ class MainLevel:
         self.koyukiSpeed = koyukiBaseSpeed
         self.mutsukiSpeed = mutsukiBaseSpeed
         self.yuukaSpeed = yuukaBaseSpeed
-        self.spawnRate = 15
+        self.spawnRate = 25
 
     def run(self):
         global previous_score
         global missed_score
         keys = pygame.key.get_pressed()
         self.counter -= 1
-        self.display.fill('grey')
+        self.display.blit(self.background, (0,0))
         pygame.mouse.set_visible(False)
         mouse_pos = pygame.mouse.get_pos()
 
@@ -223,6 +226,7 @@ class MainLevel:
         self.hearts.draw(self.display)
         self.enemies.update(SCREENHEIGHT, SCREENWIDTH, self.aoe_group, self.display)
         self.ult_bar(self.display)
+        self.ult_group = pygame.sprite.Group()
 
         drawText(self.display, str(self.sensei.score), PIXEL_FONT, 'black', 5, 5)
         drawText(self.display, "HI: " + str(data["hiscore"]), PIXEL_FONT_SMALL, 'black', 5, 40)
@@ -285,6 +289,7 @@ class MainLevel:
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 3 and self.sensei.ult == self.sensei.maxUlt \
                     and not self.sensei.invincible:
+                ult = Ex(self.ult_group, 0, 0)
                 for enemy in self.enemies:
                     enemy.kill()
                     self.sensei.score += 1
