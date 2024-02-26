@@ -20,8 +20,8 @@ class Enemy(pygame.sprite.Sprite):
         self.max_hp = hp
         self.hp = hp
         self.counter = random.randint(15, 30)
-
-        self.death_cntr = 30
+        self.is_dying = False
+        self.death_cntr = 15
 
         self.target = target
         # self.bonked_group = pygame.sprite.Group()     # to spawn bonked animation
@@ -49,7 +49,7 @@ class Enemy(pygame.sprite.Sprite):
             if not self.target.invincible:
                 self.target.hp -= 1
 
-        if self.hp <= 0:
+        if self.hp <= 0 and not self.is_dying:
             #self.bonked = True
             self.target.score += 1
             if self.target.ult != self.target.maxUlt:
@@ -57,16 +57,17 @@ class Enemy(pygame.sprite.Sprite):
             self.alive = False
 
     def check_death(self):
-        if not self.alive and not self.bonked:
+        if not self.alive and not self.is_dying:
             self.speed = 0
-            # bonked
-            while not self.bonked:
-                self.image = self.death_img
-                self.death_cntr -= 1
-                if self.death_cntr <= 0:
-                    self.bonked = True
-                    self.death_sound.play()
-                    self.kill()
+            self.is_dying = True
+            self.death_sound.play()
+        if self.is_dying:
+            self.image = self.death_img
+            self.death_cntr -= 1
+            if self.death_cntr <= 0:
+                self.bonked = True
+                self.kill()
+
 
         #if self.bonked:
          #   self.kill()
@@ -74,7 +75,6 @@ class Enemy(pygame.sprite.Sprite):
     def update(self, screenheight, screenwidth, aoe_group, display):
         self.health_bar(display)
         self.movement()
-
         self.catch_sensei()
         self.check_death()
         for aoe in aoe_group:
