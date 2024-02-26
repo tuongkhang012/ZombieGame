@@ -1,12 +1,12 @@
 import pygame
 import random
-import AoE
 
 
 class Enemy(pygame.sprite.Sprite):
-    def __init__(self, speed, image, death_img, death_sound, x, y, target, hp=1, scale=1):
+    def __init__(self, speed, image, death_img, death_sound, x, y, target, channel, hp=1, scale=1):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
+        self.channel = channel
         width = image.get_width()
         height = image.get_height()
         self.image = pygame.transform.scale(image, (int(width * scale), int(height * scale)))
@@ -60,17 +60,14 @@ class Enemy(pygame.sprite.Sprite):
         if not self.alive and not self.is_dying:
             self.speed = 0
             self.is_dying = True
-            self.death_sound.play()
+            if not self.channel.get_busy():
+                self.channel.play(self.death_sound)
         if self.is_dying:
             self.image = self.death_img
             self.death_cntr -= 1
             if self.death_cntr <= 0:
                 self.bonked = True
                 self.kill()
-
-
-        #if self.bonked:
-         #   self.kill()
 
     def update(self, screenheight, screenwidth, aoe_group, display):
         self.health_bar(display)

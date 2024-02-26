@@ -1,15 +1,14 @@
 import pygame
-import buttonRect
+print(pygame.__version__)
+from asset import buttonRect, AoE, heart
 import sys
 import json
 import random
 from enemies import koyuki as koyukiType
 from enemies import mutsuki as mutsukiType
 from enemies import yuuka as yuukaType
-from effect import Ex
-import heart
-import player
-import AoE
+from decor.effect import Ex
+from player import player
 
 # variable
 pygame.font.init()
@@ -48,10 +47,11 @@ def drawText(surface, text, font, text_col, x, y):
 class Game:
     def __init__(self):
         pygame.init()
+        pygame.mixer.init()
         self.screen = pygame.display.set_mode((SCREENWIDTH, SCREENHEIGHT))
         self.clock = pygame.time.Clock()
         pygame.display.set_caption(CAPTION)
-        self.gameStateManager = GameStateManager("main_menu", "sound/endlessCarnival.mp3")
+        self.gameStateManager = GameStateManager("main_menu", "music/endlessCarnival.mp3")
         self.menu = MainMenu(self.screen, self.gameStateManager)
         self.level = MainLevel(self.screen, self.gameStateManager)
         self.end = GameOver(self.screen, self.gameStateManager)
@@ -94,7 +94,7 @@ class MainMenu:
         helpPressed = helpButton.draw(self.display)
 
         if startPressed:
-            self.gameStateManager.setState("main_level", "sound/th06_05.wav")
+            self.gameStateManager.setState("main_level", "music/th06_05.wav")
 
         if resetPressed:
             data["hiscore"] = 0
@@ -109,7 +109,7 @@ class MainMenu:
             sys.exit()
 
         if helpPressed:
-            self.gameStateManager.setState("help", "sound/th06_05.wav", c=True)
+            self.gameStateManager.setState("help", "music/th06_05.wav", c=True)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -144,7 +144,7 @@ class Help:
         backPressed = backButton.draw(self.display)
 
         if backPressed:
-            self.gameStateManager.setState("main_menu", "sound/th06_05.wav", c=True)
+            self.gameStateManager.setState("main_menu", "music/th06_05.wav", c=True)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -157,10 +157,16 @@ class Help:
 
 class MainLevel:
     def __init__(self, display, gameStateManager):
+        self.koyukiChannel = pygame.mixer.Channel(0)
+        self.mutsukiChannel = pygame.mixer.Channel(1)
+        self.yuukaChannel = pygame.mixer.Channel(2)
+        self.koyukiDeathChannel = pygame.mixer.Channel(3)
+        self.mutsukiDeathChannel = pygame.mixer.Channel(4)
+        self.yuukaDeathChannel = pygame.mixer.Channel(5)
         self.display = display
         self.flash_radius = ((SCREENWIDTH / 2) ** 2 + (SCREENHEIGHT / 2) ** 2) ** 0.5
         self.flash_max_radius = ((SCREENWIDTH / 2) ** 2 + (SCREENHEIGHT / 2) ** 2) ** 0.5
-        self.flash_speed = 15
+        self.flash_speed = 30
         self.background = pygame.image.load("artwork/background.png").convert_alpha()
 
         self.bat0 = pygame.image.load("artwork/bat/0.png").convert_alpha()
@@ -242,7 +248,7 @@ class MainLevel:
         if self.sensei.check_death():
             previous_score = self.sensei.score
             missed_score = self.sensei.missed
-            self.gameStateManager.setState("game_over", "sound/fadeout.mp3", 0.04)
+            self.gameStateManager.setState("game_over", "music/fadeout.mp3", 0.04)
             self.reset()
 
         # Spawning mechanics
@@ -260,25 +266,28 @@ class MainLevel:
                 pos = (SCREENWIDTH, random.randint(0, SCREENHEIGHT))
 
             if spawntype == 0:
-                e = koyukiType.Koyuki(self.koyukiSpeed, pos[0], pos[1], self.sensei)
+                e = koyukiType.Koyuki(self.koyukiSpeed, pos[0], pos[1], self.sensei, self.koyukiDeathChannel)
                 spawn_sound = pygame.mixer.Sound("sound/nihahaha.mp3")
                 spawn_sound.set_volume(0.04)
-                spawn_sound.play()
+                if not self.koyukiChannel.get_busy():
+                    self.koyukiChannel.play(spawn_sound)
             elif spawntype == 1:
-                e = mutsukiType.Mutsuki(self.mutsukiSpeed, pos[0], pos[1], self.sensei)
+                e = mutsukiType.Mutsuki(self.mutsukiSpeed, pos[0], pos[1], self.sensei, self.mutsukiDeathChannel)
                 spawn_sound = pygame.mixer.Sound("sound/kufufu.mp3")
                 spawn_sound.set_volume(0.08)
-                spawn_sound.play()
+                if not self.mutsukiChannel.get_busy():
+                    self.mutsukiChannel.play(spawn_sound)
             elif spawntype == 2:
-                e = yuukaType.Yuuka(self.yuukaSpeed, pos[0], pos[1], self.sensei)
+                e = yuukaType.Yuuka(self.yuukaSpeed, pos[0], pos[1], self.sensei, self.yuukaDeathChannel)
                 spawn_sound = pygame.mixer.Sound("sound/yuuka.mp3")
                 spawn_sound.set_volume(0.03)
-                spawn_sound.play()
+                if not self.yuukaChannel.get_busy():
+                    self.yuukaChannel.play(spawn_sound)
             self.enemies.add(e)
             self.counter = random.randint(int(self.spawnRate), int(self.spawnRate) + 5)
 
         if keys[pygame.K_SPACE]:
-            self.gameStateManager.setState("pause", "sound/th06_05.wav", 0.02, c=True)
+            self.gameStateManager.setState("pause", "music/th06_05.wav", 0.02, c=True)
 
         clicked = False
         for event in pygame.event.get():
@@ -370,10 +379,10 @@ class GameOver:
         titlePressed = titleButton.draw(self.display)
 
         if restartPressed:
-            self.gameStateManager.setState("main_level", "sound/th06_05.wav")
+            self.gameStateManager.setState("main_level", "music/th06_05.wav")
 
         if titlePressed:
-            self.gameStateManager.setState("main_menu", "sound/endlessCarnival.mp3")
+            self.gameStateManager.setState("main_menu", "music/endlessCarnival.mp3")
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -402,9 +411,9 @@ class Pause:
 
         if continuePressed:
             pygame.mouse.set_visible(False)
-            self.gameStateManager.setState("main_level", "sound/th06_05.wav", 0.05, c=True)
+            self.gameStateManager.setState("main_level", "music/th06_05.wav", 0.05, c=True)
         if backPressed:
-            self.gameStateManager.setState("main_menu", "sound/endlessCarnival.mp3")
+            self.gameStateManager.setState("main_menu", "music/endlessCarnival.mp3")
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
