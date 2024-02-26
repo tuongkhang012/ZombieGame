@@ -1,15 +1,15 @@
 import pygame
-import enemy
+from enemies import enemy
 import random
 
 
 class Koyuki(enemy.Enemy):
-    def __init__(self, speed, x, y, target):
+    def __init__(self, speed, x, y, target, channel):
         image = pygame.image.load('artwork/nihaha0.png').convert_alpha()
         death_img = pygame.image.load('artwork/nihaha1.png').convert_alpha()
         death_sound = pygame.mixer.Sound("sound/nihahaded.mp3")
         self.hp = 1
-        super().__init__(speed, image, death_img, death_sound, x, y, target, hp=1, scale=1)
+        super().__init__(speed, image, death_img, death_sound, x, y, target, channel, hp=1, scale=1)
 
     def movement(self):
         if self.hp > 0:

@@ -43,7 +43,7 @@ class Ex(pygame.sprite.Sprite):
         self.image = self.image_list[self.index]
 
         # sound
-        self.sound =  pygame.mixer.Sound("sound/ex_sound.mp3")
+        self.sound = pygame.mixer.Sound("sound/ex_sound.mp3")
         self.sound.set_volume(0.3)
         self.sound.play()
 

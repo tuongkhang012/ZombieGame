@@ -1,15 +1,14 @@
 import pygame
-import enemy
-import random
+from enemies import enemy
 
 
 class Yuuka(enemy.Enemy):
-    def __init__(self, speed, x, y, target):
+    def __init__(self, speed, x, y, target, channel):
         image = pygame.image.load('artwork/yuuka0.png').convert_alpha()
         death_img = pygame.image.load('artwork/yuuka1.png').convert_alpha()
         death_sound = pygame.mixer.Sound("sound/yuukaded.mp3")
         self.hp = 3
-        super().__init__(speed, image, death_img, death_sound, x, y, target, hp=3, scale=1)
+        super().__init__(speed, image, death_img, death_sound, x, y, target, channel, hp=3, scale=1)
 
     def movement(self):
         distance_x = self.target.rect.x - self.rect.x

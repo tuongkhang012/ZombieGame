@@ -1,6 +1,5 @@
 import pygame
-import random
-from effect import Explosion
+from decor.effect import Explosion
 sensei = pygame.image.load("artwork/sensei.png")
 
 

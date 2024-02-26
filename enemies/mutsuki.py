@@ -1,15 +1,14 @@
 import pygame
-import enemy
-import random
+from enemies import enemy
 
 
 class Mutsuki(enemy.Enemy):
-    def __init__(self, speed, x, y, target):
+    def __init__(self, speed, x, y, target, channel):
         image = pygame.image.load('artwork/kufufu0.png').convert_alpha()
         death_img = pygame.image.load('artwork/kufufu1.png').convert_alpha()
         death_sound = pygame.mixer.Sound("sound/kufufuded.mp3")
         self.hp = 1
-        super().__init__(speed, image, death_img, death_sound, x, y, target, hp=2, scale=1)
+        super().__init__(speed, image, death_img, death_sound, x, y, target, channel, hp=2, scale=1)
 
     def health_bar(self, screen):
         ratio = self.hp / self.max_hp
