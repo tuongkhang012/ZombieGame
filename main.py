@@ -158,7 +158,9 @@ class Help:
 class MainLevel:
     def __init__(self, display, gameStateManager):
         self.display = display
-
+        self.flash_radius = ((SCREENWIDTH / 2) ** 2 + (SCREENHEIGHT / 2) ** 2) ** 0.5
+        self.flash_max_radius = ((SCREENWIDTH / 2) ** 2 + (SCREENHEIGHT / 2) ** 2) ** 0.5
+        self.flash_speed = 15
         self.background = pygame.image.load("artwork/background.png").convert_alpha()
 
         self.bat0 = pygame.image.load("artwork/bat/0.png").convert_alpha()
@@ -259,11 +261,19 @@ class MainLevel:
 
             if spawntype == 0:
                 e = koyukiType.Koyuki(self.koyukiSpeed, pos[0], pos[1], self.sensei)
+                spawn_sound = pygame.mixer.Sound("sound/nihahaha.mp3")
+                spawn_sound.set_volume(0.04)
+                spawn_sound.play()
             elif spawntype == 1:
                 e = mutsukiType.Mutsuki(self.mutsukiSpeed, pos[0], pos[1], self.sensei)
+                spawn_sound = pygame.mixer.Sound("sound/kufufu.mp3")
+                spawn_sound.set_volume(0.08)
+                spawn_sound.play()
             elif spawntype == 2:
                 e = yuukaType.Yuuka(self.yuukaSpeed, pos[0], pos[1], self.sensei)
-
+                spawn_sound = pygame.mixer.Sound("sound/yuuka.mp3")
+                spawn_sound.set_volume(0.03)
+                spawn_sound.play()
             self.enemies.add(e)
             self.counter = random.randint(int(self.spawnRate), int(self.spawnRate) + 5)
 
@@ -295,13 +305,19 @@ class MainLevel:
                     self.sensei.score += 1
                 self.sensei.ult = 0
                 self.sensei.maxUlt += 5
+                self.flash_radius = 0
                 self.display.blit(self.bat1, mouse_pos)
+
 
         # Update and draw AoEs
         self.aoe_group.update()
 
         if not clicked:
             self.display.blit(self.bat0, mouse_pos)
+
+        if self.flash_radius < self.flash_max_radius:
+            pygame.draw.circle(self.display, (255, 255, 255), (SCREENWIDTH / 2, SCREENHEIGHT / 2), int(self.flash_radius), 3)
+            self.flash_radius += self.flash_speed
 
     def reset(self):
         if self.sensei.score > data["hiscore"]:
@@ -332,6 +348,7 @@ class GameOver:
     def __init__(self, display, gameStateManager):
         self.display = display
         self.gameStateManager = gameStateManager
+
 
     def run(self):
         self.display.fill([74, 74, 74])
