@@ -1,5 +1,4 @@
 import pygame
-print(pygame.__version__)
 from asset import buttonRect, AoE, heart
 import sys
 import json
