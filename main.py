@@ -1,5 +1,4 @@
 import pygame
-print(pygame.__version__)
 from asset import buttonRect, AoE, heart
 import sys
 import json
@@ -24,6 +23,7 @@ speedupRate = 0.05
 koyukiBaseSpeed = 3
 mutsukiBaseSpeed = 3
 yuukaBaseSpeed = 2
+spawnRateBase = 25
 previous_score = 0
 missed_score = 0
 
@@ -188,7 +188,7 @@ class MainLevel:
         self.koyukiSpeed = koyukiBaseSpeed
         self.mutsukiSpeed = mutsukiBaseSpeed
         self.yuukaSpeed = yuukaBaseSpeed
-        self.spawnRate = 25
+        self.spawnRate = spawnRateBase
 
     def run(self):
         global previous_score
@@ -223,6 +223,8 @@ class MainLevel:
         self.yuukaSpeed += speedupRate / FPS
         if self.spawnRate != speedupRate / FPS:
             self.spawnRate -= speedupRate / FPS
+        if self.spawnRate <= 0:
+            self.spawnRate = 0
 
         self.sensei.explosion_group.update()
         self.players.update()
@@ -331,6 +333,7 @@ class MainLevel:
     def reset(self):
         if self.sensei.score > data["hiscore"]:
             data["hiscore"] = self.sensei.score
+        self.spawnRate = spawnRateBase
         self.enemies.empty()
         self.hearts.empty()
         pygame.mouse.set_visible(True)
